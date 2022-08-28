@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Jumbotron, Container, CardColumns, Card, Button } from 'react-bootstrap';
-import { REMOVE_BOOK } from '../utils/mutations';
-import { GET_ME } from '../utils/queries';
-import Auth from '../utils/auth';
 import { useQuery, useMutation } from '@apollo/react-hooks';
+import { GET_ME } from '../utils/queries';
+import { REMOVE_BOOK } from '../utils/mutations';
+import { Jumbotron, Container, CardColumns, Card, Button } from 'react-bootstrap';
 import { removeBookId } from '../utils/localStorage';
+
 
 const SavedBooks = () => {
   const { loading, data } = useQuery(GET_ME);
-  const [userData, setUserData] = useState(loading ? null : data.me);
+  const [userData, setData] = useState(loading ? null : data.me);
   const [removeBook, { error }] = useMutation(REMOVE_BOOK);
-
   if (!userData) {
     return null
   }
@@ -21,8 +20,7 @@ const SavedBooks = () => {
         variables: { bookId },
       });
 
-      // update state of books:
-      setUserData(() => {
+      setData(() => {
         return {
           ...userData,
           savedBooks: data.data.removeBook.savedBooks
@@ -34,10 +32,6 @@ const SavedBooks = () => {
     removeBookId(bookId);
   };
 
-  // if data isn't here yet, say so
-  // if (!userDataLength) {
-  //   return <h2>LOADING...</h2>;
-  // }
 
   return (
     <>
@@ -48,12 +42,13 @@ const SavedBooks = () => {
       </Jumbotron>
       <Container>
         <h2>
-          {userData.savedBooks.length
+          {!loading && userData.savedBooks.length
             ? `Viewing ${userData.savedBooks.length} saved ${userData.savedBooks.length === 1 ? 'book' : 'books'}:`
-            : 'You have no saved books!'}
+            : 'You have no saved books!'
+          }
         </h2>
         <CardColumns>
-          {userData.savedBooks.map((book) => {
+          {!loading && userData.savedBooks.map((book) => {
             return (
               <Card key={book.bookId} border='dark'>
                 {book.image ? <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' /> : null}
@@ -67,7 +62,8 @@ const SavedBooks = () => {
                 </Card.Body>
               </Card>
             );
-          })}
+          })
+          }
         </CardColumns>
       </Container>
     </>
